@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BILTMORE SIGNAL™ // PORTFOLIO</title>
+    <style>
+        /* --- CORE CONFIG --- */
+        :root {
+            --bg: #020202;
+            --panel: #080808;
+            --border: rgba(255, 255, 255, 0.08);
+            --fg: #E0E0E0;
+            --acid: #D4FF00;
+            --acid-dim: rgba(212, 255, 0, 0.03);
+            --sub: #666;
+            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --font-mono: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+        }
+
+        /* --- RESET --- */
+        * { box-sizing: border-box; cursor: none; }
+        html, body {
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: var(--font-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- CURSOR --- */
+        #cursor {
+            position: fixed; width: 12px; height: 12px;
+            background: var(--acid); transform: translate(-50%, -50%);
+            pointer-events: none; z-index: 9999; mix-blend-mode: exclusion;
+        }
+        #cursor-ring {
+            position: fixed; width: 50px; height: 50px;
+            border: 1px solid var(--acid); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 9998;
+            transition: width 0.3s, height 0.3s, background 0.3s;
+        }
+        .interactable:hover ~ #cursor-ring { width: 90px; height: 90px; background: rgba(212, 255, 0, 0.1); border-color: transparent; }
+
+        /* --- LAYOUT --- */
+        .layout { max-width: 1800px; margin: 0 auto; position: relative; z-index: 10; }
+
+        /* --- HERO (UNCHANGED - AS REQUESTED) --- */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%; padding: 25px 4vw;
+            display: flex; justify-content: space-between; z-index: 100; mix-blend-mode: exclusion;
+        }
+        .brand { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.05em; color: #fff; }
+        .mono { font-family: var(--font-mono); }
+        .acid { color: var(--acid); }
+
+        .hero-section {
+            height: 100vh; position: relative; display: flex; align-items: center;
+            border-bottom: 1px solid var(--border); overflow: hidden; padding: 0 4vw;
+        }
+        canvas#globe-engine { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.6; }
+        .hero-content { position: relative; z-index: 2; pointer-events: none; mix-blend-mode: hard-light; }
+        .hero-sidebar {
+            position: absolute; right: 4vw; bottom: 10vh; text-align: right; z-index: 5;
+            display: flex; flex-direction: column; gap: 2rem;
+        }
+        .kpi-val { font-size: 3.5rem; font-weight: 300; line-height: 1; color: var(--fg); letter-spacing: -0.05em; }
+        .kpi-label { font-size: 0.7rem; color: var(--acid); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 5px; }
+        .h-mega {
+            font-size: clamp(4rem, 11vw, 10rem); font-weight: 800; line-height: 0.8;
+            letter-spacing: -0.05em; text-transform: uppercase; margin: 0; color: #fff;
+            text-shadow: 0 0 30px rgba(212, 255, 0, 0.1);
+        }
+        .h-sub {
+            font-family: var(--font-mono); font-size: 0.85rem; color: var(--sub);
+            letter-spacing: 0.05em; max-width: 450px; margin-top: 2rem; line-height: 1.5;
+        }
+
+        /* --- PORTFOLIO SECTION (THE FIX) --- */
+        .section-label {
+            font-family: var(--font-mono); font-size: 0.8rem; color: var(--acid);
+            text-transform: uppercase; letter-spacing: 0.2em;
+            padding: 6rem 4vw 2rem; 
+            border-bottom: 1px solid var(--border);
+        }
+
+        .portfolio-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border);
+            min-height: 60vh;
+        }
+
+        /* Text Side */
+        .p-content {
+            padding: 4rem 4vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid var(--border);
+        }
+        .p-client {
+            font-size: clamp(2rem, 3vw, 4rem);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+        .p-desc {
+            font-size: 1.1rem;
+            color: #888;
+            line-height: 1.6;
+            max-width: 500px;
+            margin-bottom: 3rem;
+        }
+        .p-meta {
+            display: flex;
+            gap: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--acid);
+            text-transform: uppercase;
+        }
+        .p-meta span { display: block; margin-bottom: 0.5rem; color: var(--sub); font-size: 0.7rem; }
+
+        /* Graph Side */
+        .p-viz {
+            position: relative;
+            background: #020202; /* Seamless black */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        canvas.viz-canvas {
+            width: 80%;
+            height: 60%;
+        }
+
+        /* --- FOOTER --- */
+        .footer-cta {
+            padding: 10rem 4vw;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .big-link {
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 800;
+            color: transparent;
+            -webkit-text-stroke: 1px #fff;
+            text-transform: uppercase;
+            text-decoration: none;
+            letter-spacing: -0.04em;
+            transition: 0.3s;
+            cursor: none;
+        }
+        .big-link:hover { color: var(--acid); -webkit-text-stroke: 0px; }
+
+        @media(max-width: 1024px) {
+            .portfolio-item { grid-template-columns: 1fr; }
+            .p-content { border-right: none; padding: 4rem 4vw 2rem; min-height: auto; }
+            .p-viz { height: 400px; border-top: 1px solid var(--border); }
+            .hero-sidebar { position: relative; right: auto; bottom: auto; text-align: left; margin-top: 3rem; width: 100%; flex-direction: row; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div id="cursor-ring"></div>
+
+    <header>
+        <div class="brand">BILTMORE SIGNAL™</div>
+        <div class="mono" style="font-size: 0.75rem; color: var(--sub);">
+            PHOENIX NODE // ONLINE
+        </div>
+    </header>
+
+    <div class="layout">
+        
+        <!-- HERO (UNCHANGED) -->
+        <div class="hero-section">
+            <canvas id="globe-engine"></canvas>
+            <div class="hero-content">
+                <div class="mono acid" style="margin-bottom: 1.5rem;">// NODE_ACCESS_GRANTED</div>
+                <h1 class="h-mega interactable">Signal<br><span class="acid">Advisory</span></h1>
+                <p class="h-sub">
+                    WE ENGINEER CAPITAL RESILIENCE IN ZERO-TRUST ENVIRONMENTS.
+                    <br><br>
+                    <span class="acid">>>> INITIATE SEQUENCE</span>
+                </p>
+            </div>
+            
+            <div class="hero-sidebar">
+                <div class="kpi-unit">
+                    <div class="kpi-val counter" data-target="14292">0</div>
+                    <div class="kpi-label">COMPOSITE INDEX</div>
+                </div>
+                <div class="kpi-unit">
+                    <div class="kpi-val counter" data-target="98">0</div>
+                    <div class="kpi-label">SYSTEM LOAD %</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PORTFOLIO SECTION -->
+        <div class="section-label">01 / SELECTED CASEWORK</div>
+
+        <!-- CASE 1 -->
+        <article class="portfolio-item">
+            <div class="p-content interactable">
+                <h2 class="p-client">Camelback<br>Fund Alpha</h2>
+                <p class="p-desc">
+                    We implemented a high-frequency arbitrage engine for a Phoenix-based hedge fund, utilizing our proprietary signal-decay algorithm to outperform the S&P 500 by 18.4%.
+                </p>
+                <div class="p-meta">
+                    <div><span>SECTOR</span>Fintech</div>
+                    <div><span>OUTCOME</span>+18.4% Alpha</div>
+                    <div><span>TIMELINE</span>Q3 2025</div>
+                </div>
+            </div>
+            <div class="p-viz interactable">
+                <canvas id="viz-finance" class="viz-canvas"></canvas>
+            </div>
+        </article>
+
+        <!-- CASE 2 -->
+        <article class="portfolio-item">
+            <div class="p-content interactable">
+                <h2 class="p-client">Tempe<br>Grid Authority</h2>
+                <p class="p-desc">
+                    Deployed a predictive load-balancing neural net for municipal energy storage. The system autonomously injects capacity milliseconds before thermal overload events.
+                </p>
+                <div class="p-meta">
+                    <div><span>SECTOR</span>Infrastructure</div>
+                    <div><span>OUTCOME</span>99.99% Uptime</div>
+                    <div><span>TIMELINE</span>Q1 2026</div>
+                </div>
+            </div>
+            <div class="p-viz interactable">
+                <canvas id="viz-energy" class="viz-canvas"></canvas>
+            </div>
+        </article>
+
+        <!-- CASE 3 -->
+        <article class="portfolio-item">
+            <div class="p-content interactable">
+                <h2 class="p-client">Ocotillo<br>Logistics</h2>
+                <p class="p-desc">
+                    A complete supply-chain overhaul for Tier-1 semiconductor manufacturing. We visualized node latency in real-time to eliminate bottleneck accumulation.
+                </p>
+                <div class="p-meta">
+                    <div><span>SECTOR</span>Logistics</div>
+                    <div><span>OUTCOME</span>-40% Latency</div>
+                    <div><span>TIMELINE</span>Q4 2025</div>
+                </div>
+            </div>
+            <div class="p-viz interactable">
+                <canvas id="viz-network" class="viz-canvas"></canvas>
+            </div>
+        </article>
+
+        <!-- PROFESSIONAL FOOTER (REPLACED) -->
+        <footer class="pro-footer">
+            <div class="f-grid">
+                <!-- COL 1: IDENTITY -->
+                <div class="f-col">
+                    <div class="f-brand">BILTMORE SIGNAL™</div>
+                    <p class="f-mission">
+                        Forensic capital strategy and infrastructure resilience for the new desert economy.
+                    </p>
+                    <div class="f-status">
+                        <div class="status-dot"></div> SYSTEM ONLINE
+                    </div>
+                </div>
+
+                <!-- COL 2: OFFICE -->
+                <div class="f-col">
+                    <div class="f-head">Office</div>
+                    <address class="f-text">
+                        2525 E Camelback Rd<br>
+                        Suite 800<br>
+                        Phoenix, AZ 85016<br>
+                        United States
+                    </address>
+                </div>
+
+                <!-- COL 3: INQUIRIES -->
+                <div class="f-col">
+                    <div class="f-head">Direct Line</div>
+                    <div class="f-text">
+                        <a href="mailto:secure@biltmoresignal.com" class="f-link">inquiries@biltmore.signal</a><br>
+                        <span style="display: block; margin-top: 8px;">+1 (602) 555-0912</span>
+                    </div>
+                    <div class="f-head" style="margin-top: 2rem;">Client Access</div>
+                    <div><a href="#" class="f-link">Secure Portal ></a></div>
+                </div>
+
+                <!-- COL 4: LEGAL -->
+                <div class="f-col">
+                    <div class="f-head">Legal</div>
+                    <div class="f-links-stack">
+                        <a href="#" class="f-link">Terms of Engagement</a>
+                        <a href="#" class="f-link">Privacy Policy</a>
+                        <a href="#" class="f-link">Conflict of Interest</a>
+                        <a href="#" class="f-link">ADV Part 2A</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="f-bottom">
+                <div>© 2026 BILTMORE SIGNAL ADVISORY LLC.</div>
+                <div>REGULATED ENTITY. ALL RIGHTS RESERVED.</div>
+            </div>
+        </footer>
+
+    </div>
+
+    <style>
+        /* --- NEW PROFESSIONAL FOOTER STYLES --- */
+        .pro-footer {
+            border-top: 1px solid var(--border);
+            background: #000;
+            padding: 0 4vw;
+        }
+
+        .f-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            padding: 6rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .f-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .f-brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            color: #fff;
+            margin-bottom: 1.5rem;
+        }
+
+        .f-mission {
+            font-size: 0.9rem;
+            color: var(--sub);
+            line-height: 1.6;
+            max-width: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .f-status {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--acid);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot { width: 6px; height: 6px; background: var(--acid); border-radius: 50%; }
+
+        .f-head {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--fg);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .f-text, address {
+            font-style: normal;
+            font-size: 0.9rem;
+            color: var(--sub);
+            line-height: 1.6;
+        }
+
+        .f-links-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .f-link {
+            color: var(--sub);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .f-link:hover { color: var(--acid); }
+
+        .f-bottom {
+            padding: 2rem 0;
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: #444;
+            text-transform: uppercase;
+        }
+
+        @media(max-width: 1024px) {
+            .f-grid { grid-template-columns: 1fr; gap: 3rem; }
+        }
+    </style>
+
+    <script>
+        const lerp = (a, b, t) => a + (b - a) * t;
+
+        // --- CURSOR LOGIC ---
+        const cursor = document.getElementById('cursor');
+        const ring = document.getElementById('cursor-ring');
+        let mouse = { x: 0, y: 0, active: false };
+
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            mouse.active = true;
+            cursor.style.left = ring.style.left = e.clientX + 'px';
+            cursor.style.top = ring.style.top = e.clientY + 'px';
+        });
+
+        // --- 1. HERO GLOBE (UNCHANGED) ---
+        const globeCanvas = document.getElementById('globe-engine');
+        const globeCtx = globeCanvas.getContext('2d');
+        let width, height;
+        const GLOBE_CONFIG = { points: 500, radius: 320, baseRotSpeed: 0.001 };
+        let nodes = [];
+        let rotation = { x: 0, y: 0 };
+        let targetRotation = { x: 0, y: 0 };
+
+        class Node {
+            constructor(idx, total) {
+                const phi = Math.acos(1 - 2 * (idx + 0.5) / total);
+                const theta = Math.PI * (1 + Math.sqrt(5)) * idx;
+                this.x = GLOBE_CONFIG.radius * Math.sin(phi) * Math.cos(theta);
+                this.y = GLOBE_CONFIG.radius * Math.sin(phi) * Math.sin(theta);
+                this.z = GLOBE_CONFIG.radius * Math.cos(phi);
+                this.active = 0;
+            }
+            update(rotX, rotY) {
+                let cy = Math.cos(rotY), sy = Math.sin(rotY);
+                let cx = Math.cos(rotX), sx = Math.sin(rotX);
+                let x1 = this.x * cy - this.z * sy;
+                let z1 = this.z * cy + this.x * sy;
+                let y2 = this.y * cx - z1 * sx;
+                let z2 = z1 * cx + this.y * sx;
+                this.pz = z2;
+                const fov = 1000;
+                const scale = fov / (fov + this.pz);
+                this.sx = (x1 * scale) + width / 2;
+                this.sy = (y2 * scale) + height / 2;
+                this.scale = scale;
+                
+                if (mouse.active) {
+                    const dx = this.sx - mouse.x;
+                    const dy = this.sy - mouse.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 200) {
+                        this.active = lerp(this.active, 1, 0.1);
+                    } else this.active = lerp(this.active, 0, 0.05);
+                } else this.active = lerp(this.active, 0, 0.05);
+            }
+            draw(ctx) {
+                const alpha = (this.pz + GLOBE_CONFIG.radius) / (GLOBE_CONFIG.radius * 2);
+                if(alpha <= 0) return;
+                const size = (1.5 * this.scale) + (this.active * 3);
+                const r = lerp(40, 212, this.active);
+                const g = lerp(80, 255, this.active);
+                const b = lerp(40, 0, this.active);
+                ctx.fillStyle = `rgba(${r},${g},${b}, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.sx, this.sy, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initGlobe() {
+            width = globeCanvas.width = window.innerWidth;
+            height = globeCanvas.height = window.innerHeight;
+            nodes = [];
+            for (let i = 0; i < GLOBE_CONFIG.points; i++) nodes.push(new Node(i, GLOBE_CONFIG.points));
+        }
+
+        function renderGlobe() {
+            globeCtx.clearRect(0, 0, width, height);
+            if(mouse.active) {
+                targetRotation.y += (mouse.x - width/2) * 0.00002;
+                targetRotation.x += (mouse.y - height/2) * 0.00002;
+            } else targetRotation.y += GLOBE_CONFIG.baseRotSpeed;
+            
+            rotation.x = lerp(rotation.x, targetRotation.x, 0.1);
+            rotation.y = lerp(rotation.y, targetRotation.y, 0.1);
+            nodes.forEach(node => node.update(rotation.x, rotation.y));
+            nodes.sort((a, b) => a.pz - b.pz);
+
+            globeCtx.lineWidth = 0.5;
+            for (let i = 0; i < nodes.length; i++) {
+                const n1 = nodes[i];
+                if (n1.pz < -100) continue;
+                for (let j = i + 1; j < Math.min(i + 15, nodes.length); j++) {
+                    const n2 = nodes[j];
+                    const dist = Math.sqrt((n1.sx-n2.sx)**2 + (n1.sy-n2.sy)**2 + (n1.pz-n2.pz)**2);
+                    if (dist < 70) {
+                        const avgActive = (n1.active + n2.active) / 2;
+                        const alpha = Math.min(1, ((n1.pz + GLOBE_CONFIG.radius) / (GLOBE_CONFIG.radius * 2)) * 0.3);
+                        globeCtx.strokeStyle = avgActive > 0.1 ? `rgba(212, 255, 0, ${avgActive})` : `rgba(255, 255, 255, ${alpha * 0.15})`;
+                        globeCtx.lineWidth = avgActive > 0.1 ? 1 + avgActive : 0.5;
+                        globeCtx.beginPath();
+                        globeCtx.moveTo(n1.sx, n1.sy);
+                        globeCtx.lineTo(n2.sx, n2.sy);
+                        globeCtx.stroke();
+                    }
+                }
+                n1.draw(globeCtx);
+            }
+            requestAnimationFrame(renderGlobe);
+        }
+
+        // --- 2. ELITE VIZ ENGINES (CLEAN, TECHNICAL, FINANCIAL) ---
+
+        // VIZ 1: Financial Alpha (Divergence)
+        function initFinanceViz() {
+            const canvas = document.getElementById('viz-finance');
+            const ctx = canvas.getContext('2d');
+            let w, h, points = [], frame = 0;
+            
+            function resize() {
+                w = canvas.width = canvas.parentElement.clientWidth;
+                h = canvas.height = canvas.parentElement.clientHeight;
+                points = [];
+                let val = 0.5;
+                for(let i=0; i<100; i++) {
+                    val += (Math.random()-0.48) * 0.05; // Upward trend
+                    points.push(val);
+                }
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            function loop() {
+                frame++;
+                // Update
+                points.shift();
+                let last = points[points.length-1];
+                last += (Math.random()-0.45) * 0.05; // Slight upward bias
+                last = Math.max(0.2, Math.min(0.9, last));
+                points.push(last);
+
+                ctx.clearRect(0,0,w,h);
+                
+                // Draw Baseline (S&P 500 equivalent - slow growth)
+                ctx.beginPath();
+                ctx.moveTo(0, h * 0.8);
+                ctx.bezierCurveTo(w/2, h*0.7, w*0.8, h*0.6, w, h*0.5);
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw Alpha (The Fund - Fast growth)
+                ctx.beginPath();
+                points.forEach((p, i) => {
+                    const x = (i / 100) * w;
+                    const y = h - (p * h * 0.8) - (h*0.1);
+                    if(i===0) ctx.moveTo(x,y);
+                    else ctx.lineTo(x,y);
+                });
+                
+                // Gradient Stroke
+                const grad = ctx.createLinearGradient(0,0,w,0);
+                grad.addColorStop(0, '#555');
+                grad.addColorStop(1, '#D4FF00');
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Glow Point
+                const endY = h - (points[points.length-1] * h * 0.8) - (h*0.1);
+                ctx.fillStyle = '#D4FF00';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#D4FF00';
+                ctx.beginPath();
+                ctx.arc(w, endY, 4, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        // VIZ 2: Infrastructure (Stabilization)
+        function initEnergyViz() {
+            const canvas = document.getElementById('viz-energy');
+            const ctx = canvas.getContext('2d');
+            let w, h, time = 0;
+
+            function resize() {
+                w = canvas.width = canvas.parentElement.clientWidth;
+                h = canvas.height = canvas.parentElement.clientHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            function loop() {
+                time += 0.05;
+                ctx.clearRect(0,0,w,h);
+
+                // Draw Chaotic Input (Gray)
+                ctx.beginPath();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                for(let x=0; x<w; x+=5) {
+                    const y = h/2 + Math.sin(x*0.02 + time) * 30 + Math.sin(x*0.1 - time*2) * 15;
+                    if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                }
+                ctx.stroke();
+
+                // Draw Stabilized Output (Acid)
+                ctx.beginPath();
+                ctx.strokeStyle = '#D4FF00';
+                ctx.lineWidth = 2;
+                for(let x=0; x<w; x+=5) {
+                    // Becomes smoother as it moves right
+                    const dampening = Math.max(0, (x / w)); 
+                    const noise = (Math.sin(x*0.02 + time) * 30 + Math.sin(x*0.1 - time*2) * 15) * (1 - dampening);
+                    const y = h/2 + noise;
+                    if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                }
+                ctx.stroke();
+                
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        // VIZ 3: Logistics (Network Flow)
+        function initNetworkViz() {
+            const canvas = document.getElementById('viz-network');
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
+            const nodes = [
+                {x: 0.2, y: 0.5}, {x: 0.4, y: 0.3}, {x: 0.4, y: 0.7}, 
+                {x: 0.6, y: 0.4}, {x: 0.6, y: 0.6}, {x: 0.8, y: 0.5}
+            ];
+
+            function resize() {
+                w = canvas.width = canvas.parentElement.clientWidth;
+                h = canvas.height = canvas.parentElement.clientHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            function loop() {
+                // Spawn
+                if(Math.random() < 0.05) {
+                    particles.push({
+                        currNode: 0,
+                        t: 0,
+                        speed: 0.02 + Math.random() * 0.01
+                    });
+                }
+
+                ctx.clearRect(0,0,w,h);
+
+                // Draw Connections
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                // Simple hardcoded paths for demo elegance
+                const paths = [[0,1], [0,2], [1,3], [2,4], [3,5], [4,5]];
+                paths.forEach(p => {
+                    const n1 = nodes[p[0]];
+                    const n2 = nodes[p[1]];
+                    ctx.moveTo(n1.x * w, n1.y * h);
+                    ctx.lineTo(n2.x * w, n2.y * h);
+                });
+                ctx.stroke();
+
+                // Draw Nodes
+                ctx.fillStyle = '#222';
+                nodes.forEach(n => {
+                    ctx.beginPath();
+                    ctx.arc(n.x * w, n.y * h, 4, 0, Math.PI*2);
+                    ctx.fill();
+                });
+
+                // Update & Draw Particles
+                ctx.fillStyle = '#D4FF00';
+                for(let i = particles.length-1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.t += p.speed;
+                    
+                    if(p.t >= 1) {
+                        p.t = 0;
+                        // Simple routing logic
+                        if(p.currNode === 0) p.currNode = Math.random() > 0.5 ? 1 : 2;
+                        else if(p.currNode === 1) p.currNode = 3;
+                        else if(p.currNode === 2) p.currNode = 4;
+                        else if(p.currNode === 3 || p.currNode === 4) p.currNode = 5;
+                        else {
+                            particles.splice(i, 1);
+                            continue;
+                        }
+                    }
+
+                    // Get Target
+                    let targetIdx = 0;
+                    if(p.currNode === 0) targetIdx = Math.random() > 0.5 ? 1 : 2; // approximation for smooth anim
+                    else if(p.currNode === 1) targetIdx = 3;
+                    else if(p.currNode === 2) targetIdx = 4;
+                    else if(p.currNode === 3 || p.currNode === 4) targetIdx = 5;
+
+                    // Interpolate (Linear for now, could be eased)
+                    // Note: This is a simplified viz logic. 
+                    // To look smooth without complex pathfinding state, we just 
+                    // lerp between specific hardcoded node pairs based on current state.
+                    // For this visual: Just draw dots moving rightward.
+                    
+                    // Re-do simpler particle viz: Just flow left to right along lines
+                    const lx = lerp(0.2*w, 0.8*w, p.t + (p.currNode * 0.2)); // Fake pathing
+                    // It's abstract art.
+                }
+                
+                // Actual Particle Render (Simpler Logic for Stability)
+                paths.forEach(path => {
+                   const n1 = nodes[path[0]];
+                   const n2 = nodes[path[1]];
+                   
+                   // Draw a moving dot along this path based on time
+                   const offset = (Date.now() / 2000) % 1;
+                   const px = lerp(n1.x * w, n2.x * w, offset);
+                   const py = lerp(n1.y * h, n2.y * h, offset);
+                   
+                   ctx.beginPath();
+                   ctx.arc(px, py, 2, 0, Math.PI*2);
+                   ctx.fill();
+                });
+
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        // --- INIT ---
+        window.addEventListener('resize', initGlobe);
+        initGlobe(); renderGlobe();
+        initFinanceViz(); initEnergyViz(); initNetworkViz();
+
+        // Counters
+        document.querySelectorAll('.counter').forEach(el => {
+            const target = +el.dataset.target; let current = 0; const inc = target / 50;
+            const timer = setInterval(() => {
+                current += inc; if(current >= target) { current = target; clearInterval(timer); }
+                el.innerText = Math.floor(current).toLocaleString();
+            }, 20);
+        });
+
+    </script>
+</body>
+</html>
